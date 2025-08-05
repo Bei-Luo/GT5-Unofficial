@@ -550,4 +550,13 @@ public class Gregtech {
         @Config.RequiresMcRestart
         public GTProxy.OreDropSystem setting = GTProxy.OreDropSystem.FortuneItem;
     }
+
+    @Config.LangKey("GT5U.gui.config.gregtech.language")
+    public static class Language {
+
+        @Config.Comment("Server language code (e.g. 'zh_CN', 'en_US'). This setting only affects the server-side language used for notifications and interactions.")
+        @Config.DefaultString("en_US")
+        @Config.RequiresMcRestart
+        public String serverLanguage = "en_US";
+    }
 }
