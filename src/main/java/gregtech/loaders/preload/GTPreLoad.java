@@ -107,8 +107,23 @@ public class GTPreLoad {
                 }
             }
         } else {
-            GTLanguageManager.isEN_US = true;
-            GTLanguageManager.sEnglishFile = new Configuration(new File(languageDir, "GregTech.lang"));
+            String serverLang = "zh_CN";
+            GT_FML_LOGGER.info("Server lang is " + serverLang);
+            if (serverLang.equals("en_US")) {
+                GTLanguageManager.isEN_US = true;
+                GTLanguageManager.sEnglishFile = new Configuration(new File(languageDir, "GregTech.lang"));
+            } else {
+                String l10nFileName = "GregTech_" + serverLang + ".lang";
+                File l10nFile = new File(languageDir, l10nFileName);
+                if (l10nFile.isFile()) {
+                    GT_FML_LOGGER.info("Loading l10n file: " + l10nFileName);
+                    GTLanguageManager.sEnglishFile = new Configuration(l10nFile);
+                } else {
+                    GT_FML_LOGGER.info("Cannot find l10n file " + l10nFileName + ", fallback to GregTech.lang");
+                    GTLanguageManager.isEN_US = true;
+                    GTLanguageManager.sEnglishFile = new Configuration(new File(languageDir, "GregTech.lang"));
+                }
+            }
         }
         GTLanguageManager.sEnglishFile.load();
 
@@ -498,6 +513,9 @@ public class GTPreLoad {
 
         // ore_drop_behavior
         GTMod.gregtechproxy.oreDropSystem = Gregtech.oreDropBehavior.setting;
+
+        // language
+        String serverLang = Gregtech.language.serverLanguage; // Reference to ensure config is loaded
 
         // features
         GTMod.gregtechproxy.mUpgradeCount = Math.min(64, Math.max(1, Gregtech.features.upgradeStackSize));
