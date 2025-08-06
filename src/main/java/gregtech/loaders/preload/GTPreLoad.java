@@ -514,9 +514,6 @@ public class GTPreLoad {
         // ore_drop_behavior
         GTMod.gregtechproxy.oreDropSystem = Gregtech.oreDropBehavior.setting;
 
-        // language
-        String serverLang = Gregtech.language.serverLanguage; // Reference to ensure config is loaded
-
         // features
         GTMod.gregtechproxy.mUpgradeCount = Math.min(64, Math.max(1, Gregtech.features.upgradeStackSize));
         for (OrePrefixes tPrefix : OrePrefixes.values()) {
