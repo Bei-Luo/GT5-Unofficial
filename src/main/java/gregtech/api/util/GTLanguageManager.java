@@ -481,7 +481,10 @@ public class GTLanguageManager {
                     if (line.isEmpty() || line.charAt(0) == '#') continue;
                     final int split = line.indexOf('=');
                     if (split <= 0) continue;
-                    parsed.put(line.substring(0, split).trim(), line.substring(split + 1));
+                    parsed.put(
+                        line.substring(0, split)
+                            .trim(),
+                        line.substring(split + 1));
                 }
             }
         } catch (IOException e) {
