@@ -1,10 +1,16 @@
 package gregtech.api.util;
 
+import static gregtech.GTLoggers.GT_FML_LOGGER;
 import static gregtech.api.enums.GTValues.E;
 import static gregtech.api.util.GTRecipeBuilder.WILDCARD;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -61,6 +67,10 @@ public class GTLanguageManager {
      * If there's any lang entry that is not found on lang file and waiting to be written.
      */
     private static boolean hasUnsavedEntry = false;
+    /**
+     * Language forced for dedicated-server lookups, or {@code null} when the server keeps the default language.
+     */
+    private static String sForcedServerLanguage = null;
 
     // TODO: convert to enum
     public static String FACE_ANY = "gt.lang.face.any", FACE_BOTTOM = "gt.lang.face.bottom",
@@ -433,6 +443,56 @@ public class GTLanguageManager {
             languageMap.put(key, english);
             LANGMAP.put(key, english);
         }
+    }
+
+    /**
+     * Injects the mod's bundled lang file for the given language into the live {@link StatCollector} lookup tables.
+     * <p>
+     * This is meant for dedicated servers, which only ever load {@code en_US}. Text resolved server-side can be baked
+     * into NBT or network packets and later displayed verbatim by clients, so without this a server would always leak
+     * English (e.g. Nuclear Control panels fed by the Metrics Transmitter cover).
+     *
+     * @param lang the language code whose bundled lang file should be used
+     */
+    public static synchronized void loadLanguageForServer(String lang) {
+        sForcedServerLanguage = lang;
+        applyForcedServerLanguage();
+    }
+
+    /**
+     * Re-applies the previously forced server language, if any. Intended to be called late in startup so that later
+     * language merges cannot clobber the injected entries.
+     */
+    public static synchronized void reapplyForcedServerLanguage() {
+        if (sForcedServerLanguage != null) applyForcedServerLanguage();
+    }
+
+    private static synchronized void applyForcedServerLanguage() {
+        final Map<String, String> parsed = new HashMap<>();
+        final String resource = "/assets/gregtech/lang/" + sForcedServerLanguage + ".lang";
+        try (InputStream stream = GTLanguageManager.class.getResourceAsStream(resource)) {
+            if (stream == null) {
+                GT_FML_LOGGER.warn("Server language file " + resource + " not found, keeping default language");
+                return;
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.isEmpty() || line.charAt(0) == '#') continue;
+                    final int split = line.indexOf('=');
+                    if (split <= 0) continue;
+                    parsed.put(line.substring(0, split).trim(), line.substring(split + 1));
+                }
+            }
+        } catch (IOException e) {
+            GT_FML_LOGGER.warn("Failed to read server language file " + resource, e);
+            return;
+        }
+        if (parsed.isEmpty()) return;
+        LANGMAP.putAll(parsed);
+        if (stringTranslateLanguageList != null) stringTranslateLanguageList.putAll(parsed);
+        if (stringTranslateLanguageListFallBack != null) stringTranslateLanguageListFallBack.putAll(parsed);
+        GT_FML_LOGGER.info("Loaded {} server-side translations from {}", parsed.size(), resource);
     }
 
     public static boolean hasGTLocalizationKey(final String key) {

@@ -796,6 +796,7 @@ public class GTMod {
 
     @Mod.EventHandler
     public void onServerStarted(FMLServerStartedEvent event) {
+        GTLanguageManager.reapplyForcedServerLanguage();
         proxy.onServerStarted(event);
         if (RecipeMapBackend.shouldValidateLookup()) {
             GT_FML_LOGGER.info("GTRecipeLookupValidator: enabled; waiting for first server tick after server start.");
