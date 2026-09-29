@@ -1,27 +1,55 @@
-ggfab.waila.advassline.slice=装配刀片 #%s: %s秒 / %s秒
-ggfab.waila.advassline.slice.small=装配刀片 #%s: %s刻 / %s刻
-ggfab.waila.advassline.slice.idle=装配刀片 #%s: 空闲
-ggfab.waila.advassline.slice.stuck=装配刀片 #%s: §4停滞
-ggfab.gui.advassline.slice.idle=装配刀片 #%s: 空闲
-ggfab.gui.advassline.slice.stuck=装配刀片 #%s: §4停滞
-ggfab.gui.advassline.slice.unknown=装配刀片 #%s: ?
+ggfab.waila.advassline.slice=片#%s：%s s / %s s
+ggfab.waila.advassline.slice.small=片#%s：%s t / %s t
+ggfab.waila.advassline.slice.idle=片#%s：待机
+ggfab.waila.advassline.slice.stuck=片#%s：§4堵塞
+ggfab.gui.advassline.slice.idle=片#%s：待机
+ggfab.gui.advassline.slice.stuck=片#%s：§4堵塞
+ggfab.gui.advassline.slice.unknown=片#%s：?
+ggfab.gui.advassline.shutdown=§4上次异常关机原因：
+ggfab.gui.advassline.shutdown_clear=§6清除
+ggfab.gui.advassline.shutdown.input_buses=§4输入总线过少不足以支持当前配方
+ggfab.gui.advassline.shutdown.recipe_null=§4配方为 null （报告给作者）
+ggfab.gui.advassline.shutdown.fluid_null=§4流体获取失败（检查你的ME流体存储）
+ggfab.gui.advassline.shutdown.structure=§4不兼容的结构变化
+ggfab.gui.advassline.shutdown.energy=§4功率不足
+ggfab.gui.advassline.shutdown.load.energy=§4载入了无效的电力信息
+ggfab.gui.advassline.shutdown.load.recipe=§4不兼容的配方切换
 
-ggfab.info.linked_input_bus.not_owned=§6记录的设置来自于不同的拥有者！
-ggfab.info.linked_input_bus.invalid_data=§6找到了配置，但是它已不再有效！
-ggfab.info.linked_input_bus.data_pasted=§2已粘贴频道("%s§2")和编程芯片配置!
-ggfab.info.linked_input_bus.data_copied=§2已记录频道("%s§2")和编程芯片配置!
-ggfab.info.linked_input_bus.no_channel=§6还没有设置频道！
+ggfab.info.linked_input_bus.not_owned=§6该配置是从其他所有者处复制的!
+ggfab.info.linked_input_bus.no_data=§6找不到配置数据!
+ggfab.info.linked_input_bus.invalid_data=§6配置数据存在但已失效!
+ggfab.info.linked_input_bus.invalid_circuit=§6配置数据存在但包含对这个总线无效的电路板!
+ggfab.info.linked_input_bus.data_pasted=§2已粘贴频道 ("%s§2") 与编程电路设置!
+ggfab.info.linked_input_bus.data_copied=§2已复制频道 ("%s§2") 与编程电路设置!
+ggfab.info.linked_input_bus.no_channel=§6尚未指定频道!
 
-ggfab.info.biome=群系:
+ggfab.info.biome=生物群系：
 
-ggfab.tooltip.linked_input_bus.change_freq_warn=如果这是最后一个本频道的输入总线，改变频道会使剩余的内容物洒在地上！
-ggfab.tooltip.linked_input_bus.private=私有频道不会与其余玩家共享
-ggfab.tooltip.linked_input_bus.private.1=如果这是最后一个本频道的输入总线，改变频道会使剩余的内容物洒在地上！
+ggfab.tooltip.linked_input_bus.change_freq_warn=修改一个频道上最后一个总线的频道，将导致剩余物品全部掉出来!
+ggfab.tooltip.linked_input_bus.private=私人频道不与他人共享.
+ggfab.tooltip.linked_input_bus.private.1=修改一个频道上最后一个总线的频道，将导致剩余物品全部掉出来!
+
+ggfab.gui.linked_input_bus.private=私人
+ggfab.gui.linked_input_bus.channel=频道
+
+# Advanced Assembly Line tooltip
+ggfab.tt.advassline.machine_type=装配线，AAL
+ggfab.tt.advassline.structure.controller=第三层，第一片
+ggfab.tt.advassline.structure.data_access_location=任意非第一片格栅机械方块
+ggfab.tt.advassline.structure.energy_location=任意第四层机械方块
+ggfab.tt.advassline.structure.layer1_side_casing=任意第一片侧面机械方块
+ggfab.tt.advassline.structure.input_bus_location=每片的底面中心
+ggfab.tt.advassline.structure.output_bus_location=任意最后一片的第一层机械方块
+ggfab.tt.advassline.structure.layer4=§f第四层：§7空，脱氧钢机械方块，空
+ggfab.tt.advassline.structure.layer3=§f第三层：§7格栅机械方块，装配线外壳，格栅机械方块
+ggfab.tt.advassline.structure.layer2=§f第二层：§7任意等级玻璃，装配线方块，任意等级玻璃
+ggfab.tt.advassline.structure.layer1=§f第一层：§7脱氧钢机械方块，输入总线，脱氧钢机械方块
+ggfab.tt.advassline.structure.footer=最大16片，每片允许配方中多一项输入
 
 # Multiblocks
 gt.blockmachines.ggfab.machine.adv_assline.name=进阶装配线
 
-# Single use tools
+# Entries kept from the previous zh_CN.lang (not present in the imported translation)
 gt.ggfab.d1.0.name=一次性锉
 gt.ggfab.d1.1.name=一次性扳手
 gt.ggfab.d1.2.name=一次性撬棍

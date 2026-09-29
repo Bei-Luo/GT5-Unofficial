@@ -469,33 +469,75 @@ public class GTLanguageManager {
 
     private static synchronized void applyForcedServerLanguage() {
         final Map<String, String> parsed = new HashMap<>();
-        final String resource = "/assets/gregtech/lang/" + sForcedServerLanguage + ".lang";
+        readNamespaceLangFile("gregtech", parsed);
+        readNamespaceLangFile("bartworks", parsed);
+        readNamespaceLangFile("detravscannermod", parsed);
+        readNamespaceLangFile("ggfab", parsed);
+        readNamespaceLangFile("goodgenerator", parsed);
+        readNamespaceLangFile("gtneioreplugin", parsed);
+        readNamespaceLangFile("gtnhintergalactic", parsed);
+        readNamespaceLangFile("gtnhlanth", parsed);
+        readNamespaceLangFile("ic2", parsed);
+        readNamespaceLangFile("kekztech", parsed);
+        readNamespaceLangFile("kubatech", parsed);
+        readNamespaceLangFile("miscutils", parsed);
+        readNamespaceLangFile("spiceoflife", parsed);
+        readNamespaceLangFile("stevescarts", parsed);
+        readNamespaceLangFile("tectech", parsed);
+        // Legacy keys such as "Material.<name>" only exist in the old GregTech.lang system, so merge that file too.
+        readLegacyLangFile(parsed);
+        if (parsed.isEmpty()) return;
+        LANGMAP.putAll(parsed);
+        if (stringTranslateLanguageList != null) stringTranslateLanguageList.putAll(parsed);
+        if (stringTranslateLanguageListFallBack != null) stringTranslateLanguageListFallBack.putAll(parsed);
+        GT_FML_LOGGER.info("Loaded {} translations for {}", parsed.size(), sForcedServerLanguage);
+    }
+
+    private static void readNamespaceLangFile(String modid, Map<String, String> out) {
+        final String path = "/assets/" + modid + "/lang/";
+        readLangFile(path + sForcedServerLanguage + ".lang", out);
+    }
+
+    /** Reads a standard {@code key=value} lang file and merges its entries into {@code out}. */
+    private static void readLangFile(String resource, Map<String, String> out) {
         try (InputStream stream = GTLanguageManager.class.getResourceAsStream(resource)) {
-            if (stream == null) {
-                GT_FML_LOGGER.warn("Server language file " + resource + " not found, keeping default language");
-                return;
-            }
+            if (stream == null) return;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (line.isEmpty() || line.charAt(0) == '#') continue;
                     final int split = line.indexOf('=');
                     if (split <= 0) continue;
-                    parsed.put(
-                        line.substring(0, split)
-                            .trim(),
-                        line.substring(split + 1));
+                    final String key = line.substring(0, split).trim();
+                    final String value = line.substring(split + 1);
+                    out.put(key, value);
                 }
             }
         } catch (IOException e) {
             GT_FML_LOGGER.warn("Failed to read server language file " + resource, e);
-            return;
         }
-        if (parsed.isEmpty()) return;
-        LANGMAP.putAll(parsed);
-        if (stringTranslateLanguageList != null) stringTranslateLanguageList.putAll(parsed);
-        if (stringTranslateLanguageListFallBack != null) stringTranslateLanguageListFallBack.putAll(parsed);
-        GT_FML_LOGGER.info("Loaded {} server-side translations from {}", parsed.size(), resource);
+    }
+
+    /** Reads a legacy {@code GregTech.lang} style Forge configuration file and merges it into {@code out}. */
+    private static void readLegacyLangFile(Map<String, String> out) {
+        final String path = "/gt_server_lang/legacy_" + sForcedServerLanguage + ".lang";
+        try (InputStream stream = GTLanguageManager.class.getResourceAsStream(path)) {
+            if (stream == null) return;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    final String trimmed = line.trim();
+                    if (!trimmed.startsWith("S:")) continue;
+                    final int split = trimmed.indexOf('=', 2);
+                    if (split <= 2) continue;
+                    final String key = trimmed.substring(2, split).trim();
+                    final String value = trimmed.substring(split + 1);
+                    out.put(key, value);
+                }
+            }
+        } catch (IOException e) {
+            GT_FML_LOGGER.warn("Failed to read server language file " + path, e);
+        }
     }
 
     public static boolean hasGTLocalizationKey(final String key) {
