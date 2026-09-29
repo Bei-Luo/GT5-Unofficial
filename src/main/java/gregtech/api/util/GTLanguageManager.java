@@ -508,7 +508,8 @@ public class GTLanguageManager {
                     if (line.isEmpty() || line.charAt(0) == '#') continue;
                     final int split = line.indexOf('=');
                     if (split <= 0) continue;
-                    final String key = line.substring(0, split).trim();
+                    final String key = line.substring(0, split)
+                        .trim();
                     final String value = line.substring(split + 1);
                     out.put(key, value);
                 }
@@ -530,7 +531,8 @@ public class GTLanguageManager {
                     if (!trimmed.startsWith("S:")) continue;
                     final int split = trimmed.indexOf('=', 2);
                     if (split <= 2) continue;
-                    final String key = trimmed.substring(2, split).trim();
+                    final String key = trimmed.substring(2, split)
+                        .trim();
                     final String value = trimmed.substring(split + 1);
                     out.put(key, value);
                 }
