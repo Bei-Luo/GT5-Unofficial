@@ -2,7 +2,12 @@ package gregtech.api.util;
 
 import static gregtech.api.enums.GTValues.E;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -13,6 +18,9 @@ import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 import gregtech.api.GregTechAPI;
@@ -22,6 +30,8 @@ import gregtech.api.GregTechAPI;
  */
 @Deprecated
 public class GTLanguageManager {
+
+    private static final Logger LOG = LogManager.getLogger("GTLanguageManager");
 
     /**
      * Buffer to reduce memory allocation when injecting data to LanguageRegistry.
@@ -53,6 +63,10 @@ public class GTLanguageManager {
      * If there's any lang entry that is not found on lang file and waiting to be written.
      */
     private static boolean hasUnsavedEntry = false;
+    /**
+     * Language forced for dedicated-server lookups, or {@code null} when the server keeps the default language.
+     */
+    private static String sForcedServerLanguage = null;
 
     // TODO: convert to enum
     public static String FACE_ANY = "gt.lang.face.any", FACE_BOTTOM = "gt.lang.face.bottom",
@@ -478,6 +492,86 @@ public class GTLanguageManager {
     private static void addToMCLangList(String aKey, String translation) {
         if (stringTranslateLanguageList != null) {
             stringTranslateLanguageList.put(aKey, translation);
+        }
+    }
+
+    /**
+     * Injects the mod's bundled lang file for the given language into the live {@link StatCollector} lookup table.
+     * <p>
+     * This is meant for dedicated servers, which only ever load {@code en_US}. Text resolved server-side is baked into
+     * NBT or network packets and later displayed verbatim by clients, so without this a server would always leak
+     * English.
+     */
+    public static synchronized void loadLanguageForServer(String lang) {
+        sForcedServerLanguage = lang;
+        applyForcedServerLanguage();
+    }
+
+    /**
+     * Re-applies the previously forced server language, if any. Intended to be called late in startup, so entries that
+     * were still English at that point get translated as well.
+     */
+    public static synchronized void reapplyForcedServerLanguage() {
+        if (sForcedServerLanguage != null) applyForcedServerLanguage();
+    }
+
+    private static synchronized void applyForcedServerLanguage() {
+        if (sForcedServerLanguage == null) return;
+        readNamespaceLangFile("gregtech");
+        readNamespaceLangFile("bartworks");
+        readNamespaceLangFile("detravscannermod");
+        readNamespaceLangFile("ggfab");
+        readNamespaceLangFile("goodgenerator");
+        readNamespaceLangFile("gtneioreplugin");
+        readNamespaceLangFile("gtnhintergalactic");
+        readNamespaceLangFile("gtnhlanth");
+        readNamespaceLangFile("ic2");
+        readNamespaceLangFile("kekztech");
+        readNamespaceLangFile("kubatech");
+        readNamespaceLangFile("miscutils");
+        readNamespaceLangFile("spiceoflife");
+        readNamespaceLangFile("stevescarts");
+        readNamespaceLangFile("tectech");
+        LOG.info("Loaded server-side translations for " + sForcedServerLanguage);
+    }
+
+    /**
+     * Copies every entry of a namespace's bundled translation into the live lookup table. Entries that already resolve
+     * to something other than the bundled English text are left alone, so translations provided by the legacy
+     * {@code GregTech.lang} system always win.
+     */
+    private static void readNamespaceLangFile(String modid) {
+        final String dir = "/assets/" + modid + "/lang/";
+        final Map<String, String> english = new HashMap<>();
+        readLangFile(dir + "en_US.lang", english);
+        final Map<String, String> translated = new HashMap<>();
+        readLangFile(dir + sForcedServerLanguage + ".lang", translated);
+        for (Entry<String, String> entry : translated.entrySet()) {
+            final String key = entry.getKey();
+            final String current = stringTranslateLanguageList.get(key);
+            if (current == null || current.equals(english.get(key))) {
+                stringTranslateLanguageList.put(key, entry.getValue());
+            }
+        }
+    }
+
+    private static void readLangFile(String resource, Map<String, String> out) {
+        try (InputStream stream = GTLanguageManager.class.getResourceAsStream(resource)) {
+            if (stream == null) return;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.isEmpty() || line.charAt(0) == '#') continue;
+                    final int split = line.indexOf('=');
+                    if (split <= 0) continue;
+                    final String key = line.substring(0, split)
+                        .trim();
+                    final String value = line.substring(split + 1);
+                    out.put(key, value);
+                }
+            }
+        } catch (IOException e) {
+            LOG.warn("Failed to read server language file " + resource, e);
         }
     }
 }

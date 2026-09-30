@@ -12,7 +12,7 @@ gtnop.gui.nei.secondaryOre=下层矿石
 gtnop.gui.nei.betweenOre=中层矿石
 gtnop.gui.nei.sporadicOre=散乱分布
 gtnop.gui.nei.genHeight=生成高度
-gtnop.gui.nei.weightedChance=生成几率
+gtnop.gui.nei.weightedChance=生成权重
 gtnop.gui.nei.worldNames=生成世界
 gtnop.gui.nei.restrictBiome=生物群系限制
 gtnop.gui.nei.dimension=维度
@@ -93,3 +93,8 @@ gtnop.ore.custom.name=自定义
 
 # items
 itemGroup.gtneioreplugin=GT NEI 矿物插件
+gtnop.world.maahes=马赫斯
+gtnop.world.seth=赛特
+gtnop.world.anubis=阿努比斯
+gtnop.world.neper=奈佩里
+gtnop.world.horus=荷鲁斯

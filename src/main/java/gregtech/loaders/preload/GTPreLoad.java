@@ -107,8 +107,18 @@ public class GTPreLoad {
                 }
             }
         } else {
-            GTLanguageManager.isEN_US = true;
-            GTLanguageManager.sEnglishFile = new Configuration(new File(languageDir, "GregTech.lang"));
+            // Dedicated servers only ever load en_US, so text resolved here is frozen as English before it is sent to
+            // clients. Use the translation that ships next to GregTech.lang when it is available, and inject the
+            // bundled namespace lang files so machine info panels are Chinese as well.
+            File l10nFile = new File(languageDir, "GregTech_zh_CN.lang");
+            if (l10nFile.isFile()) {
+                GT_FML_LOGGER.info("Loading l10n file: GregTech_zh_CN.lang");
+                GTLanguageManager.sEnglishFile = new Configuration(l10nFile);
+            } else {
+                GTLanguageManager.isEN_US = true;
+                GTLanguageManager.sEnglishFile = new Configuration(new File(languageDir, "GregTech.lang"));
+            }
+            GTLanguageManager.loadLanguageForServer("zh_CN");
         }
         GTLanguageManager.sEnglishFile.load();
 

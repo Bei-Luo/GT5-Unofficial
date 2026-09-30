@@ -736,6 +736,7 @@ public class GTMod {
 
     @Mod.EventHandler
     public void onServerStarted(FMLServerStartedEvent event) {
+        GTLanguageManager.reapplyForcedServerLanguage();
         proxy.onServerStarted(event);
     }
 
