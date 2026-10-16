@@ -1,9 +1,15 @@
 package gregtech.api.util;
 
+import static gregtech.GTLoggers.GT_FML_LOGGER;
 import static gregtech.api.enums.GTValues.E;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -58,6 +64,10 @@ public class GTLanguageManager {
      * If there's any lang entry that is not found on lang file and waiting to be written.
      */
     private static boolean hasUnsavedEntry = false;
+    /**
+     * Language forced for dedicated-server lookups, or {@code null} when the server keeps the default language.
+     */
+    private static String sForcedServerLanguage = null;
 
     /**
      * Map referencing private field of StringTranslate, used by StatCollector. Used to inject lang entries there.
@@ -238,6 +248,103 @@ public class GTLanguageManager {
             String english = stringTranslateLanguageListFallBack.get(key);
             languageMap.put(key, english);
             LANGMAP.put(key, english);
+        }
+    }
+
+    /**
+     * Injects the mod's bundled lang file for the given language into the live {@link StatCollector} lookup tables.
+     * <p>
+     * This is meant for dedicated servers, which only ever load {@code en_US}. Text resolved server-side can be baked
+     * into NBT or network packets and later displayed verbatim by clients, so without this a server would always leak
+     * English (e.g. Nuclear Control panels fed by the Metrics Transmitter cover).
+     *
+     * @param lang the language code whose bundled lang file should be used
+     */
+    public static synchronized void loadLanguageForServer(String lang) {
+        sForcedServerLanguage = lang;
+        applyForcedServerLanguage();
+    }
+
+    /**
+     * Re-applies the previously forced server language, if any. Intended to be called late in startup so that later
+     * language merges cannot clobber the injected entries.
+     */
+    public static synchronized void reapplyForcedServerLanguage() {
+        if (sForcedServerLanguage != null) applyForcedServerLanguage();
+    }
+
+    private static synchronized void applyForcedServerLanguage() {
+        final Map<String, String> parsed = new HashMap<>();
+        readNamespaceLangFile("gregtech", parsed);
+        readNamespaceLangFile("bartworks", parsed);
+        readNamespaceLangFile("detravscannermod", parsed);
+        readNamespaceLangFile("ggfab", parsed);
+        readNamespaceLangFile("goodgenerator", parsed);
+        readNamespaceLangFile("gtneioreplugin", parsed);
+        readNamespaceLangFile("gtnhintergalactic", parsed);
+        readNamespaceLangFile("gtnhlanth", parsed);
+        readNamespaceLangFile("ic2", parsed);
+        readNamespaceLangFile("kekztech", parsed);
+        readNamespaceLangFile("kubatech", parsed);
+        readNamespaceLangFile("miscutils", parsed);
+        readNamespaceLangFile("spiceoflife", parsed);
+        readNamespaceLangFile("stevescarts", parsed);
+        readNamespaceLangFile("tectech", parsed);
+        // Legacy keys such as "Material.<name>" only exist in the old GregTech.lang system, so merge that file too.
+        readLegacyLangFile(parsed);
+        if (parsed.isEmpty()) return;
+        LANGMAP.putAll(parsed);
+        if (stringTranslateLanguageList != null) stringTranslateLanguageList.putAll(parsed);
+        if (stringTranslateLanguageListFallBack != null) stringTranslateLanguageListFallBack.putAll(parsed);
+        GT_FML_LOGGER.info("Loaded {} translations for {}", parsed.size(), sForcedServerLanguage);
+    }
+
+    private static void readNamespaceLangFile(String modid, Map<String, String> out) {
+        final String path = "/assets/" + modid + "/lang/";
+        readLangFile(path + sForcedServerLanguage + ".lang", out);
+    }
+
+    /** Reads a standard {@code key=value} lang file and merges its entries into {@code out}. */
+    private static void readLangFile(String resource, Map<String, String> out) {
+        try (InputStream stream = GTLanguageManager.class.getResourceAsStream(resource)) {
+            if (stream == null) return;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.isEmpty() || line.charAt(0) == '#') continue;
+                    final int split = line.indexOf('=');
+                    if (split <= 0) continue;
+                    final String key = line.substring(0, split)
+                        .trim();
+                    final String value = line.substring(split + 1);
+                    out.put(key, value);
+                }
+            }
+        } catch (IOException e) {
+            GT_FML_LOGGER.warn("Failed to read server language file " + resource, e);
+        }
+    }
+
+    /** Reads a legacy {@code GregTech.lang} style Forge configuration file and merges it into {@code out}. */
+    private static void readLegacyLangFile(Map<String, String> out) {
+        final String path = "/gt_server_lang/legacy_" + sForcedServerLanguage + ".lang";
+        try (InputStream stream = GTLanguageManager.class.getResourceAsStream(path)) {
+            if (stream == null) return;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    final String trimmed = line.trim();
+                    if (!trimmed.startsWith("S:")) continue;
+                    final int split = trimmed.indexOf('=', 2);
+                    if (split <= 2) continue;
+                    final String key = trimmed.substring(2, split)
+                        .trim();
+                    final String value = trimmed.substring(split + 1);
+                    out.put(key, value);
+                }
+            }
+        } catch (IOException e) {
+            GT_FML_LOGGER.warn("Failed to read server language file " + path, e);
         }
     }
 

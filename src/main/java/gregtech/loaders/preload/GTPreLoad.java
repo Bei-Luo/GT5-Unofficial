@@ -106,6 +106,10 @@ public class GTPreLoad {
                 }
             }
         } else {
+            // Dedicated servers only ever load en_US, so any text resolved here is frozen as English before it is sent
+            // to clients. Force the bundled Chinese translations into the server-side lookup tables so that machine
+            // data read by other mods (e.g. Nuclear Control panels fed by the Metrics Transmitter cover) is Chinese.
+            GTLanguageManager.loadLanguageForServer("zh_CN");
             GTLanguageManager.isEN_US = true;
             GTLanguageManager.sEnglishFile = new Configuration(new File(languageDir, "GregTech.lang"));
         }
