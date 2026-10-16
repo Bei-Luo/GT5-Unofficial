@@ -408,6 +408,13 @@ public class Gregtech {
         @Config.DefaultInt(0)
         @Config.Name("Scheduler Profiling")
         public int schedulerProfileLevel;
+
+        @Config.Comment({
+            "The language code used for server-side localization on dedicated servers (e.g. 'zh_CN', 'ru_RU', 'en_US').",
+            "Set to 'default' or 'en_US' to keep the default English language." })
+        @Config.DefaultString("default")
+        @Config.RequiresMcRestart
+        public String serverLanguage;
     }
 
     @Config.LangKey("GT5U.gui.config.gregtech.harvest_level")

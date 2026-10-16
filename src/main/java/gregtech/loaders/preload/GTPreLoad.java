@@ -106,8 +106,27 @@ public class GTPreLoad {
                 }
             }
         } else {
-            GTLanguageManager.isEN_US = true;
-            GTLanguageManager.sEnglishFile = new Configuration(new File(languageDir, "GregTech.lang"));
+            String serverLang = Gregtech.general.serverLanguage;
+            if (serverLang != null && !serverLang.isEmpty()
+                && !"default".equalsIgnoreCase(serverLang)
+                && !"en_US".equalsIgnoreCase(serverLang)) {
+                GT_FML_LOGGER.info("Dedicated server language configured as: {}", serverLang);
+                GTLanguageManager.loadLanguageForServer(serverLang, languageDir);
+                String l10nFileName = "GregTech_" + serverLang + ".lang";
+                File l10nFile = new File(languageDir, l10nFileName);
+                if (l10nFile.isFile()) {
+                    GT_FML_LOGGER.info("Loading server l10n file: {}", l10nFileName);
+                    GTLanguageManager.sEnglishFile = new Configuration(l10nFile);
+                    GTLanguageManager.isEN_US = false;
+                } else {
+                    GT_FML_LOGGER.info("Cannot find server l10n file {}, fallback to GregTech.lang", l10nFileName);
+                    GTLanguageManager.isEN_US = true;
+                    GTLanguageManager.sEnglishFile = new Configuration(new File(languageDir, "GregTech.lang"));
+                }
+            } else {
+                GTLanguageManager.isEN_US = true;
+                GTLanguageManager.sEnglishFile = new Configuration(new File(languageDir, "GregTech.lang"));
+            }
         }
         GTLanguageManager.sEnglishFile.load();
 

@@ -39,3 +39,6 @@ addon.late.local.gradle.kts
 /.vs
 layout.json
 /scratch/
+.commandcode/
+/GregTech_*.lang
+

@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -112,6 +114,21 @@ public interface IGregTechDeviceInformation {
     }
 
     /**
+     * Matches argument-consuming conversions such as {@code %d} or {@code %f}. Conversions that accept strings
+     * ({@code %s}, {@code %b}, {@code %h}) and {@code %n} are deliberately not matched.
+     */
+    Pattern ARG_CONVERSION = Pattern.compile("%(\\d+\\$)?[-#+0,(]*\\d*(\\.\\d+)?[doxXeEfgGaAc]");
+
+    /**
+     * Rewrites conversions that {@link #decode} can never satisfy into {@code %s}. Its arguments always arrive as
+     * strings, so a translation using {@code %d} would otherwise fail to format and fall back to plain text.
+     */
+    static String asStringFormat(String format) {
+        final Matcher matcher = ARG_CONVERSION.matcher(format);
+        return matcher.replaceAll("%$1s");
+    }
+
+    /**
      * Decodes and translates a string previously produced by {@link #encode} (or a bare translation key).
      * <p>
      * When called on the client side {@link StatCollector} resolves the key in the player's language. When called
@@ -131,7 +148,7 @@ public interface IGregTechDeviceInformation {
             }
         }
         try {
-            return String.format(translated, (Object[]) args);
+            return String.format(asStringFormat(translated), (Object[]) args);
         } catch (Exception e) {
             GT_FML_LOGGER
                 .warn("IGregTechDeviceInformation.decode: failed to format key '{}': {}", parts[0], e.getMessage());
